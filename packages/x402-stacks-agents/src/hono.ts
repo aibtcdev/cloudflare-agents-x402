@@ -108,7 +108,9 @@ export function requireStacksPayment(
 
 function matchRoute(pattern: string, method: string, path: string): boolean {
   const [m, p] = pattern.includes(" ") ? pattern.split(/\s+/, 2) : ["*", pattern];
-  if (m !== "*" && m.toUpperCase() !== method) return false;
+  // Hono serves HEAD with the GET handler, so a GET price must cover HEAD too.
+  const effective = method === "HEAD" ? "GET" : method;
+  if (m !== "*" && m.toUpperCase() !== effective) return false;
   if (p.endsWith("/*")) return path === p.slice(0, -2) || path.startsWith(p.slice(0, -1));
   return p === path;
 }

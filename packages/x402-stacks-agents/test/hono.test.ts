@@ -65,6 +65,13 @@ describe("stacksPaymentMiddleware", () => {
     });
   });
 
+  it("charges HEAD on a GET-priced route (Hono runs the GET handler for HEAD)", async () => {
+    const f = facilitator();
+    const res = await app(f).request("/premium", { method: "HEAD" });
+    expect(res.status).toBe(402);
+    expect(f.settle).not.toHaveBeenCalled();
+  });
+
   it("leaves unpriced routes alone", async () => {
     expect(await (await app(facilitator()).request("/free")).text()).toBe("free");
   });
