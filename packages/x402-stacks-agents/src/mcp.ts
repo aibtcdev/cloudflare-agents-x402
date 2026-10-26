@@ -29,6 +29,7 @@ import {
 } from "./facilitator";
 import { createPaymentGate, type PaymentReceipt } from "./gate";
 import {
+  AdvertisedPriceMismatchError,
   NoCompatibleRequirementError,
   PaymentCapError,
   PaymentDeclinedError,
@@ -210,16 +211,28 @@ export function withX402StacksClient<T extends McpClientLike>(
       ? originalCallTool(params, options)
       : originalCallTool(params, undefined, options)) as Promise<CallToolResult>;
 
+  const advertisedPrices = new Map<
+    string,
+    { amount: string; asset: string; network?: string }
+  >();
+
   const listTools = async (params?: unknown, options?: unknown) => {
     const res = (await originalListTools(params, options)) as {
-      tools: Array<{ description?: string; _meta?: Record<string, unknown> }>;
+      tools: Array<{
+        name?: string;
+        description?: string;
+        _meta?: Record<string, unknown>;
+      }>;
     };
     return {
       ...res,
       tools: res.tools.map((tool) => {
         const price = tool._meta?.[META.price] as
-          | { amount: string; asset: string }
+          | { amount: string; asset: string; network?: string }
           | undefined;
+        if (tool.name && price) {
+          advertisedPrices.set(tool.name, price);
+        }
         if (!tool._meta?.[META.paymentRequired]) return tool;
         const cost = price ? `${price.amount} of ${price.asset}` : "an unknown amount";
         return {
@@ -241,14 +254,23 @@ export function withX402StacksClient<T extends McpClientLike>(
       return res;
     }
 
+    const expectedPrice = advertisedPrices.get(params.name);
+
     let payment: PaymentPayloadV2;
     try {
-      payment = await payFor(err, cfg, confirm ?? cfg.confirmationCallback);
+      payment = await payFor(
+        err,
+        cfg,
+        confirm ?? cfg.confirmationCallback,
+        expectedPrice
+      );
     } catch (e) {
       // Nothing we can pay with: hand back the server's 402 untouched.
       if (e instanceof NoCompatibleRequirementError) return res;
       const text =
-        e instanceof PaymentDeclinedError || e instanceof PaymentCapError
+        e instanceof PaymentDeclinedError ||
+        e instanceof PaymentCapError ||
+        e instanceof AdvertisedPriceMismatchError
           ? e.message
           : "Failed to create payment payload";
       return { isError: true, content: [{ type: "text", text }] };

@@ -65,6 +65,7 @@ const res = await paidFetch("https://x402.aibtc.com/...");
 | `facilitator` | aibtc relay for the network | A URL, or any `{ verify, settle }` implementation |
 | `settle` | `"after-success"` | Set to `"before-run"` to charge before the tool executes |
 | `maxAmount` | sBTC 1,000 sats · STX 1 STX · USDCx 0.10 | Per payment, in atomic units |
+| `budget` | none | Cumulative spend cap (e.g. `{ total: { sBTC: 250n }, windowMs: 60_000 }`). Tracked in-memory per config object (`WeakMap`), resetting on Worker restart. Cloned configs (`{ ...cfg }`) maintain independent ledgers. |
 | `getNonce` | fetched from the Stacks API | Supply it from agent state to avoid nonce collisions |
 | `sponsored` | `false` | Build fee-0 transactions for a facilitator that co-signs as sponsor. The aibtc relay's `/settle` refuses them |
 | `fee` | estimated | Fixed fee in microSTX per payment |
