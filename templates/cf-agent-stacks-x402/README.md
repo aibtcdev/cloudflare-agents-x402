@@ -10,6 +10,11 @@ A Cloudflare Agents SDK starter where every agent has its **own Stacks wallet** 
 
 ## Run
 
+Run it from inside this repo. `x402-stacks-agents` is the workspace package in
+[`packages/x402-stacks-agents`](../../packages/x402-stacks-agents), linked by path, and it is
+**not** published to npm by aibtcdev. The unscoped name on npm belongs to an unrelated
+publisher, so don't swap the path for a registry version when copying this starter out.
+
 ```sh
 npm install
 cp .dev.vars.example .dev.vars      # set WALLET_KEK=$(openssl rand -base64 32)
