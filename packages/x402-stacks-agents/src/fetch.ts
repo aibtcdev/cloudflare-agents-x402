@@ -15,7 +15,7 @@ function decodeHeader(value: string | null): PaymentRequiredV2 | null {
  * Wrap `fetch` so a 402 from a Stacks x402 endpoint is paid and retried once.
  * Workers-native counterpart to x402-stacks' `wrapAxiosWithPayment`.
  * Refusals (cap, declined, no compatible option) throw typed errors from
- * `x402-stacks-agents`.
+ * `@aibtc/x402-stacks-agents`.
  */
 export function wrapFetchWithStacksPayment(
   fetchImpl: typeof fetch,

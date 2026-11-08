@@ -1,4 +1,4 @@
-# x402-stacks-agents
+# @aibtc/x402-stacks-agents
 
 Stacks x402 payments (sBTC, STX, USDCx) for [Cloudflare's Agents SDK](https://developers.cloudflare.com/agents/tools/payments/x402/). It is the Stacks counterpart to `agents/x402`, which only supports EVM, and is built on [`x402-stacks`](https://github.com/tony1908/x402Stacks).
 
@@ -13,7 +13,7 @@ Stacks x402 payments (sBTC, STX, USDCx) for [Cloudflare's Agents SDK](https://de
 ```ts
 import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { withX402Stacks } from "x402-stacks-agents/mcp";
+import { withX402Stacks } from "@aibtc/x402-stacks-agents/mcp";
 import { z } from "zod";
 
 export class PaidMCP extends McpAgent<Env> {
@@ -36,7 +36,7 @@ export class PaidMCP extends McpAgent<Env> {
 ## Pay from an agent
 
 ```ts
-import { withX402StacksClient } from "x402-stacks-agents/mcp";
+import { withX402StacksClient } from "@aibtc/x402-stacks-agents/mcp";
 
 const client = withX402StacksClient(mcpClient, {
   privateKey: this.env.STACKS_PRIVATE_KEY,
@@ -52,7 +52,7 @@ const res = await client.callTool(null, { name: "square", arguments: { n: 7 } })
 ## Pay an HTTP x402 endpoint
 
 ```ts
-import { wrapFetchWithStacksPayment } from "x402-stacks-agents/fetch";
+import { wrapFetchWithStacksPayment } from "@aibtc/x402-stacks-agents/fetch";
 
 const paidFetch = wrapFetchWithStacksPayment(fetch, { privateKey, network: "mainnet" });
 const res = await paidFetch("https://x402.aibtc.com/...");

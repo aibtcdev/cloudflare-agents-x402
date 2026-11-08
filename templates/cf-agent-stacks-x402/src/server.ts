@@ -8,9 +8,9 @@ import {
   type PaymentReceipt,
   type StacksNetworkName,
   type StacksPayerConfig
-} from "x402-stacks-agents";
-import { withX402Stacks, withX402StacksClient } from "x402-stacks-agents/mcp";
-import { stacksPaymentMiddleware, type StacksPaymentVariables } from "x402-stacks-agents/hono";
+} from "@aibtc/x402-stacks-agents";
+import { withX402Stacks, withX402StacksClient } from "@aibtc/x402-stacks-agents/mcp";
+import { stacksPaymentMiddleware, type StacksPaymentVariables } from "@aibtc/x402-stacks-agents/hono";
 import { AgentWallet } from "./wallet";
 
 const network = (process.env.STACKS_NETWORK ?? "testnet") as StacksNetworkName;

@@ -1,5 +1,5 @@
 import { privateKeyToAddress, randomPrivateKey } from "@stacks/transactions";
-import type { StacksNetworkName } from "x402-stacks-agents";
+import type { StacksNetworkName } from "@aibtc/x402-stacks-agents";
 
 type Sql = <T = Record<string, string | number | boolean | null>>(
   strings: TemplateStringsArray,
