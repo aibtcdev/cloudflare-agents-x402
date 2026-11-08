@@ -65,4 +65,13 @@ describe("wrapFetchWithStacksPayment", () => {
     await expect(f("https://api.example/premium")).rejects.toBeInstanceOf(PaymentCapError);
     expect(inner).toHaveBeenCalledOnce();
   });
+
+  it("enforces cumulative budget across multiple fetch calls", async () => {
+    const inner = server("100");
+    const budgetCfg = { ...cfg, budget: { total: { sBTC: 250n } } };
+    const f = wrapFetchWithStacksPayment(inner as unknown as typeof fetch, budgetCfg);
+    await f("https://api.example/premium");
+    await f("https://api.example/premium");
+    await expect(f("https://api.example/premium")).rejects.toThrow(/exceeds budget: 300 > 250/);
+  });
 });
