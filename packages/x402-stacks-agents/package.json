@@ -4,6 +4,13 @@
   "description": "Stacks (sBTC/STX/USDCx) x402 payments for Cloudflare's Agents SDK, built on x402-stacks",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aibtcdev/cloudflare-agents-x402.git",
+    "directory": "packages/x402-stacks-agents"
+  },
+  "homepage": "https://github.com/aibtcdev/cloudflare-agents-x402/tree/main/packages/x402-stacks-agents#readme",
+  "bugs": "https://github.com/aibtcdev/cloudflare-agents-x402/issues",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -27,6 +34,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

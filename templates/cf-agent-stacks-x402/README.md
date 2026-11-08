@@ -1,6 +1,6 @@
 # cf-agent-stacks-x402
 
-A Cloudflare Agents SDK starter where every agent has its **own Stacks wallet** and can both **charge** and **pay** in sBTC over x402. It is built on [`@aibtc/x402-stacks-agents`](../../packages/x402-stacks-agents). Payments settle through the aibtc x402 relay. They are self-paid, so an agent wallet needs sBTC to pay with plus a little STX for fees.
+A Cloudflare Agents SDK starter where every agent has its **own Stacks wallet** and can both **charge** and **pay** in sBTC over x402. It is built on [`@aibtc/x402-stacks-agents`](https://github.com/aibtcdev/cloudflare-agents-x402/tree/main/packages/x402-stacks-agents). Payments settle through the aibtc x402 relay. They are self-paid, so an agent wallet needs sBTC to pay with plus a little STX for fees.
 
 | Piece | What it shows |
 |---|---|
@@ -10,8 +10,13 @@ A Cloudflare Agents SDK starter where every agent has its **own Stacks wallet** 
 
 ## Run
 
+`@aibtc/x402-stacks-agents` is not published to npm yet, so run the template from a clone of this repo. There, npm workspaces link the dependency to `packages/x402-stacks-agents`, and the package has to be built once before the template can import it:
+
 ```sh
+# from the repo root
 npm install
+npm run build --workspace packages/x402-stacks-agents
+cd templates/cf-agent-stacks-x402
 cp .dev.vars.example .dev.vars      # set WALLET_KEK=$(openssl rand -base64 32)
 # set PAY_TO in wrangler.jsonc to the Stacks address that should receive payments
 npm run dev
