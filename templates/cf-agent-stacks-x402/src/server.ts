@@ -15,23 +15,41 @@ import { AgentWallet, NO_KEK } from "./wallet";
 
 const network = (process.env.STACKS_NETWORK ?? "testnet") as StacksNetworkName;
 
-// --- 1. MCP server that charges in sBTC ---
+// --- 0. The AI you sell. Set AGENT_PROMPT, AI_MODEL, PRICE and TOKEN in wrangler.jsonc ---
+
+const price = Number(process.env.PRICE);
+
+const payment = {
+  network,
+  recipient: process.env.PAY_TO as string,
+  token: process.env.TOKEN as "sBTC" | "STX",
+  settle: "before-run" as const // take the payment before running the AI
+};
+
+async function askAI(env: Env, question: string) {
+  const result = await env.AI.run(env.AI_MODEL, {
+    messages: [
+      { role: "system", content: env.AGENT_PROMPT },
+      { role: "user", content: question }
+    ],
+    max_tokens: 512
+  });
+  return String(result.response);
+}
+
+// --- 1. MCP server that charges for the AI ---
 
 export class PaidMCP extends McpAgent<Env> {
-  server = withX402Stacks(new McpServer({ name: "PaidMCP", version: "1.0.0" }), {
-    network,
-    recipient: process.env.PAY_TO as string,
-    token: "sBTC"
-  });
+  server = withX402Stacks(new McpServer({ name: "PaidMCP", version: "1.0.0" }), payment);
 
   async init() {
     this.server.paidTool(
-      "square",
-      "Squares a number",
-      100, // sats
-      { number: z.number() },
+      "ask",
+      "Ask this agent a question",
+      price,
+      { question: z.string() },
       {},
-      async ({ number }) => ({ content: [{ type: "text", text: String(number ** 2) }] })
+      async ({ question }) => ({ content: [{ type: "text", text: await askAI(this.env, question) }] })
     );
 
     this.server.registerTool(
@@ -113,16 +131,11 @@ export class StacksAgent extends Agent<Env> {
 
 const app = new Hono<{ Bindings: Env; Variables: StacksPaymentVariables }>();
 
-app.use(
-  stacksPaymentMiddleware(
-    { "GET /premium": { price: 100, description: "Premium content, 100 sats" } },
-    { network, recipient: process.env.PAY_TO as string }
-  )
-);
+app.use(stacksPaymentMiddleware({ "GET /ask": { price, description: "Ask this agent a question" } }, payment));
 
-app.get("/premium", (c) => c.json({ content: "The answer is 42", paidBy: c.get("x402Stacks")?.payer ?? null }));
+app.get("/ask", async (c) => c.json({ answer: await askAI(c.env, c.req.query("question") ?? "") }));
 
-// The paying agent needs WALLET_KEK; charging (/premium, /mcp) does not.
+// The paying agent needs WALLET_KEK; charging (/ask, /mcp) does not.
 app.use("/agent/*", async (c, next) =>
   c.env.WALLET_KEK ? next() : c.json({ error: NO_KEK }, 503)
 );

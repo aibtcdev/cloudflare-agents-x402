@@ -1,6 +1,6 @@
 {
   "name": "cf-agent-stacks-x402",
-  "description": "Cloudflare Agents SDK starter: an agent with its own Stacks wallet that pays and gets paid in sBTC over x402",
+  "description": "Cloudflare AI agent that sells answers for sBTC or STX over x402, from your own prompt",
   "private": true,
   "type": "module",
   "scripts": {
@@ -24,14 +24,26 @@
   },
   "cloudflare": {
     "bindings": {
+      "AGENT_PROMPT": {
+        "description": "What your agent does: the system prompt used for every paid question. For example, `You are a Stacks smart-contract tutor.`"
+      },
+      "AI_MODEL": {
+        "description": "A [Workers AI](https://developers.cloudflare.com/workers-ai/models/) text-generation model. Check the model's license before charging for it."
+      },
+      "PRICE": {
+        "description": "Price per question, in the token's smallest unit: **sats** for sBTC, **microSTX** for STX (1 STX = 1,000,000)."
+      },
+      "TOKEN": {
+        "description": "`sBTC` or `STX`: what callers pay you in."
+      },
       "PAY_TO": {
-        "description": "Your Stacks address that receives payments for `/premium` and the paid MCP tool. Use an `ST…` address for testnet or `SP…` for mainnet."
+        "description": "Your Stacks address that receives payments for `/ask` and the paid MCP tool. Use an `ST…` address for testnet or `SP…` for mainnet."
       },
       "STACKS_NETWORK": {
         "description": "`testnet` or `mainnet`."
       },
       "MAX_SATS_PER_PAYMENT": {
-        "description": "Most an agent will auto-pay for a single call, in sats."
+        "description": "For the optional paying agent: the most it will auto-pay for a single call, in sats."
       }
     }
   }
