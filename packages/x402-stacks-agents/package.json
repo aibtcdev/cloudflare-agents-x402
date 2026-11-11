@@ -59,7 +59,7 @@
     }
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "hono": "^4.13.12",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0",
