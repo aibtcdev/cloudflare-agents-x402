@@ -22,7 +22,6 @@ See the [template README](templates/cf-agent-stacks-x402/README.md) for details 
 |---|---|
 | [`packages/x402-stacks-agents`](packages/x402-stacks-agents) | The library: `withX402Stacks` / `paidTool` to charge for MCP tools, `withX402StacksClient` to pay for them, a Hono paywall, and a paying `fetch` |
 | [`templates/cf-agent-stacks-x402`](templates/cf-agent-stacks-x402) | The starter Worker behind the Deploy button |
-| [`RESEARCH.md`](RESEARCH.md) | Design notes, the roadmap (wallet onboarding, volume dashboard) and mainnet test results |
 
 ## Use the library in your own agent
 
