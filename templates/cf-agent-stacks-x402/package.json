@@ -1,6 +1,6 @@
 {
   "name": "cf-agent-stacks-x402",
-  "description": "Cloudflare AI agent that sells answers for sBTC or STX over x402, from your own prompt",
+  "description": "One-click deployment of an x402 endpoint on Cloudflare that accepts sBTC and STX.",
   "private": true,
   "type": "module",
   "scripts": {

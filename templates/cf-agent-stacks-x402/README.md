@@ -1,5 +1,7 @@
 # cf-agent-stacks-x402
 
+**One-click deployment of an x402 endpoint on Cloudflare that accepts sBTC and STX.**
+
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aibtcdev/cloudflare-agents-x402/tree/main/templates/cf-agent-stacks-x402)
 
 Your own AI agent on Cloudflare that gets paid in **sBTC (sats) or STX** for every question, over x402. You write the prompt; it runs on [Workers AI](https://developers.cloudflare.com/workers-ai/). Payments settle through the aibtc x402 relay, built on [`@aibtc/x402-stacks-agents`](https://github.com/aibtcdev/cloudflare-agents-x402/tree/main/packages/x402-stacks-agents).
