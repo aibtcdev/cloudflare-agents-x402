@@ -11,7 +11,7 @@ import {
 } from "@aibtc/x402-stacks-agents";
 import { withX402Stacks, withX402StacksClient } from "@aibtc/x402-stacks-agents/mcp";
 import { stacksPaymentMiddleware, type StacksPaymentVariables } from "@aibtc/x402-stacks-agents/hono";
-import { AgentWallet } from "./wallet";
+import { AgentWallet, NO_KEK } from "./wallet";
 
 const network = (process.env.STACKS_NETWORK ?? "testnet") as StacksNetworkName;
 
@@ -61,6 +61,7 @@ export class StacksAgent extends Agent<Env> {
   }
 
   async onStart() {
+    if (!this.env.WALLET_KEK) return console.log(`[StacksAgent ${this.name}] ${NO_KEK}`);
     const { address } = await this.wallet.ensure();
     console.log(`[StacksAgent ${this.name}] wallet ${address} (${network})`);
   }
@@ -120,6 +121,11 @@ app.use(
 );
 
 app.get("/premium", (c) => c.json({ content: "The answer is 42", paidBy: c.get("x402Stacks")?.payer ?? null }));
+
+// The paying agent needs WALLET_KEK; charging (/premium, /mcp) does not.
+app.use("/agent/*", async (c, next) =>
+  c.env.WALLET_KEK ? next() : c.json({ error: NO_KEK }, 503)
+);
 
 const agent = (c: { env: Env; req: { param: (k: "name") => string } }) =>
   getAgentByName(c.env.StacksAgent, c.req.param("name"));
