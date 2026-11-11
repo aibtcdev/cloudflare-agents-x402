@@ -4,9 +4,17 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
+  "ai": { "binding": "AI" },
   "vars": {
+    // What your agent does: the system prompt for every paid question.
+    "AGENT_PROMPT": "You are a helpful assistant. Answer clearly and concisely.",
+    // Any Workers AI text-generation model: https://developers.cloudflare.com/workers-ai/models/
+    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+    // Price per question, in the token's smallest unit (sats for sBTC, microSTX for STX).
+    "PRICE": "100",
+    "TOKEN": "sBTC",
     "STACKS_NETWORK": "testnet",
-    // Address that receives payments for /premium and PaidMCP tools.
+    // Address that receives payments for /ask and the paid MCP tool.
     "PAY_TO": "REPLACE_WITH_YOUR_STACKS_ADDRESS",
     "MAX_SATS_PER_PAYMENT": "1000"
   },
