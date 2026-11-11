@@ -17,7 +17,12 @@ const b64 = (b: ArrayBuffer | Uint8Array) =>
   btoa(String.fromCharCode(...new Uint8Array(b)));
 const unb64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
-async function importKek(kekB64: string): Promise<CryptoKey> {
+export const NO_KEK =
+  "WALLET_KEK is not set. Receiving payments works without it, but a paying agent needs it: " +
+  "run `openssl rand -base64 32 | npx wrangler secret put WALLET_KEK`.";
+
+async function importKek(kekB64: string | undefined): Promise<CryptoKey> {
+  if (!kekB64) throw new Error(NO_KEK);
   const raw = unb64(kekB64);
   if (raw.length !== 32) throw new Error("WALLET_KEK must be 32 bytes, base64-encoded");
   return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
@@ -32,7 +37,7 @@ export class AgentWallet {
   constructor(
     private sql: Sql,
     private network: StacksNetworkName,
-    private kek: string
+    private kek: string | undefined
   ) {
     this.sql`CREATE TABLE IF NOT EXISTS stacks_wallet (
       id INTEGER PRIMARY KEY CHECK (id = 1),

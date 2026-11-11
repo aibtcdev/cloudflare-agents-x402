@@ -21,5 +21,18 @@
     "@cloudflare/workers-types": "^5.20261003.1",
     "typescript": "^5.9.0",
     "wrangler": "^4.0.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "PAY_TO": {
+        "description": "Your Stacks address that receives payments for `/premium` and the paid MCP tool. Use an `ST…` address for testnet or `SP…` for mainnet."
+      },
+      "STACKS_NETWORK": {
+        "description": "`testnet` or `mainnet`."
+      },
+      "MAX_SATS_PER_PAYMENT": {
+        "description": "Most an agent will auto-pay for a single call, in sats."
+      }
+    }
   }
 }
