@@ -1,5 +1,7 @@
 # cloudflare-agents-x402
 
+**One-click deployment of an x402 endpoint on Cloudflare that accepts sBTC and STX.**
+
 Bitcoin payments for [Cloudflare Agents](https://developers.cloudflare.com/agents/). Agents can charge for their tools and pay for other agents' tools in **sBTC** (or STX / USDCx) on Stacks, using the [x402](https://developers.cloudflare.com/agents/tools/payments/x402/) pay-per-request standard.
 
 Cloudflare's built-in `agents/x402` only supports EVM chains. This repo adds Stacks, settling through the [aibtc x402 relay](https://github.com/aibtcdev/x402-sponsor-relay).
