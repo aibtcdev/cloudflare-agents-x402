@@ -51,7 +51,7 @@ A new agent wallet starts empty, so paid calls fail until it's funded. To make t
 - send sBTC **and a little STX** (0.05 STX covers dozens of payments) to the address returned by `/agent/<name>/wallet`, or
 - uncomment `PAYER_PRIVATE_KEY` in `.dev.vars` and set it to a funded key.
 
-Tested on mainnet on 2026-10-04: an agent paid 100 sats each for `square` and for `/premium`. See `RESEARCH.md` for the transaction IDs.
+Tested on mainnet on 2026-10-04: an agent paid 100 sats each for `square` and for `/premium`.
 
 ## Configure
 
@@ -67,5 +67,5 @@ Tested on mainnet on 2026-10-04: an agent paid 100 sats each for `square` and fo
 
 ## Not yet included
 
-- Onboarding (funding from a dedicated funder address, then aibtc identity registration) is the next step in [`RESEARCH.md`](../../RESEARCH.md).
+- Onboarding: funding agent wallets from a dedicated funder address, then aibtc identity registration.
 - Human-in-the-loop payment confirmation: pass a callback instead of `null` to `callTool` (see Cloudflare's `x402-mcp` example).
