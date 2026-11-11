@@ -29,13 +29,10 @@ Then try it against your `*.workers.dev` URL using the `curl` commands below, re
 
 ## Run locally
 
-From a clone of this repo, npm workspaces link `@aibtc/x402-stacks-agents` to `packages/x402-stacks-agents`, which has to be built once:
+The template installs `@aibtc/x402-stacks-agents` from its [GitHub release tarball](https://github.com/aibtcdev/cloudflare-agents-x402/releases/tag/x402-stacks-agents-v0.1.0), not from `packages/x402-stacks-agents`, so it runs exactly what a one-click deploy gets. To try unreleased library changes, run `npm install ../../packages/x402-stacks-agents --no-save` in this folder after building the package.
 
 ```sh
-# from the repo root
 npm install
-npm run build --workspace packages/x402-stacks-agents
-cd templates/cf-agent-stacks-x402
 cp .dev.vars.example .dev.vars      # for the paying agent: set WALLET_KEK=$(openssl rand -base64 32)
 # set PAY_TO in wrangler.jsonc to the Stacks address that should receive payments
 npm run dev
