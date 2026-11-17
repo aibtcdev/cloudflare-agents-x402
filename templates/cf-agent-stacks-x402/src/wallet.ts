@@ -47,6 +47,27 @@ export class AgentWallet {
       key_iv TEXT NOT NULL,
       created_at INTEGER NOT NULL
     )`;
+    this.sql`CREATE TABLE IF NOT EXISTS stacks_spend (
+      token TEXT NOT NULL,
+      amount TEXT NOT NULL,
+      at INTEGER NOT NULL
+    )`;
+  }
+
+  /**
+   * Record a payment against a rolling daily budget, or return false if it
+   * would exceed it. Stored in the agent's SQLite, so it survives restarts.
+   * Check and insert run synchronously, so concurrent payments can't both
+   * slip under the limit. A payment that fails after this still counts.
+   */
+  reserveSpend(token: string, amount: bigint, limit: bigint, windowMs = 86_400_000): boolean {
+    const now = Date.now();
+    this.sql`DELETE FROM stacks_spend WHERE at < ${now - windowMs}`;
+    const rows = this.sql<{ amount: string }>`SELECT amount FROM stacks_spend WHERE token = ${token}`;
+    const spent = rows.reduce((sum, r) => sum + BigInt(r.amount), 0n);
+    if (spent + amount > limit) return false;
+    this.sql`INSERT INTO stacks_spend (token, amount, at) VALUES (${token}, ${amount.toString()}, ${now})`;
+    return true;
   }
 
   /** Create the wallet on first use; return its public info. */

@@ -44,6 +44,15 @@
       },
       "MAX_SATS_PER_PAYMENT": {
         "description": "For the optional paying agent: the most it will auto-pay for a single call, in sats."
+      },
+      "MAX_USTX_PER_PAYMENT": {
+        "description": "For the optional paying agent: the most it will auto-pay for a single call, in microSTX."
+      },
+      "DAILY_BUDGET_SATS": {
+        "description": "For the optional paying agent: the most each agent wallet spends in sats over any 24 hours."
+      },
+      "DAILY_BUDGET_USTX": {
+        "description": "For the optional paying agent: the most each agent wallet spends in microSTX over any 24 hours."
       }
     }
   }
