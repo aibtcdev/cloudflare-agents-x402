@@ -1,9 +1,11 @@
-import { Agent, callable, getAgentByName, routeAgentRequest } from "agents";
+import { Agent, getAgentByName, routeAgentRequest } from "agents";
 import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { Hono } from "hono";
+import { Hono, type MiddlewareHandler } from "hono";
 import { z } from "zod";
 import {
+  fromCAIP2,
+  tokenForAsset,
   wrapFetchWithStacksPayment,
   type PaymentReceipt,
   type StacksNetworkName,
@@ -12,6 +14,10 @@ import {
 import { withX402Stacks, withX402StacksClient } from "@aibtc/x402-stacks-agents/mcp";
 import { stacksPaymentMiddleware, type StacksPaymentVariables } from "@aibtc/x402-stacks-agents/hono";
 import { AgentWallet, NO_KEK } from "./wallet";
+
+const NO_API_KEY =
+  "AGENT_API_KEY is not set, so the paying agent is disabled. It protects the agent's wallet: " +
+  "run `openssl rand -base64 32 | npx wrangler secret put AGENT_API_KEY`.";
 
 const network = (process.env.STACKS_NETWORK ?? "testnet") as StacksNetworkName;
 
@@ -70,10 +76,27 @@ export class StacksAgent extends Agent<Env> {
     // PAYER_PRIVATE_KEY lets you test with an already-funded wallet in dev.
     const devKey = this.env.PAYER_PRIVATE_KEY;
     const privateKey = devKey || (await this.wallet.privateKey());
+    const daily = {
+      sBTC: BigInt(this.env.DAILY_BUDGET_SATS ?? "10000"),
+      STX: BigInt(this.env.DAILY_BUDGET_USTX ?? "1000000"),
+      USDCx: 0n
+    };
     return {
       privateKey,
       network,
-      maxAmount: { sBTC: BigInt(this.env.MAX_SATS_PER_PAYMENT ?? "1000") },
+      maxAmount: {
+        sBTC: BigInt(this.env.MAX_SATS_PER_PAYMENT ?? "1000"),
+        STX: BigInt(this.env.MAX_USTX_PER_PAYMENT ?? "100000"),
+        USDCx: 0n
+      },
+      // Runs before every signature: refuse a price that differs from the one
+      // advertised, and anything over the daily budget (kept in agent storage).
+      confirmationCallback: async (_accepts, selected, context) => {
+        if (!selected || context?.priceMismatch) return false;
+        const token = tokenForAsset(selected.asset, fromCAIP2(selected.network));
+        if (!token) return false;
+        return this.wallet.reserveSpend(token, BigInt(selected.amount), daily[token]);
+      },
       getNonce: devKey ? undefined : (address) => this.wallet.nextNonce(address)
     };
   }
@@ -95,7 +118,10 @@ export class StacksAgent extends Agent<Env> {
     return this.mcpClient;
   }
 
-  @callable()
+  // These methods are reached only through the authenticated /agent/* routes
+  // (Durable Object RPC). They are deliberately not @callable(), which would
+  // expose them to any WebSocket client on /agents/*.
+
   async getWallet() {
     const info = await this.wallet.ensure();
     const balances = await this.wallet.balances(info.address).catch(() => null);
@@ -103,7 +129,6 @@ export class StacksAgent extends Agent<Env> {
   }
 
   /** Call a tool on PaidMCP, paying in sBTC if it asks (auto-pay within MAX_SATS_PER_PAYMENT). */
-  @callable()
   async callTool(
     name: string,
     args: Record<string, unknown>
@@ -119,7 +144,6 @@ export class StacksAgent extends Agent<Env> {
   }
 
   /** Fetch any Stacks x402 HTTP endpoint, paying if it returns 402. */
-  @callable()
   async fetchPaid(url: string): Promise<{ status: number; body: string; payment: string | null }> {
     const paidFetch = wrapFetchWithStacksPayment(fetch, await this.payer());
     const res = await paidFetch(url);
@@ -135,10 +159,29 @@ app.use(stacksPaymentMiddleware({ "GET /ask": { price, description: "Ask this ag
 
 app.get("/ask", async (c) => c.json({ answer: await askAI(c.env, c.req.query("question") ?? "") }));
 
-// The paying agent needs WALLET_KEK; charging (/ask, /mcp) does not.
-app.use("/agent/*", async (c, next) =>
-  c.env.WALLET_KEK ? next() : c.json({ error: NO_KEK }, 503)
-);
+/** Constant-time string comparison (hash first so lengths always match). */
+async function safeEqual(a: string, b: string) {
+  const enc = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(a)),
+    crypto.subtle.digest("SHA-256", enc.encode(b))
+  ]);
+  return crypto.subtle.timingSafeEqual(ha, hb) && a.length === b.length;
+}
+
+// The paying agent spends from its wallet, so every route that reaches it
+// needs WALLET_KEK and the AGENT_API_KEY bearer token. Charging (/ask, /mcp) does not.
+const requireAgentKey: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
+  if (!c.env.WALLET_KEK) return c.json({ error: NO_KEK }, 503);
+  if (!c.env.AGENT_API_KEY) return c.json({ error: NO_API_KEY }, 503);
+  const token = c.req.header("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1] ?? "";
+  if (!(await safeEqual(token, c.env.AGENT_API_KEY))) {
+    return c.json({ error: "unauthorized" }, 401, { "WWW-Authenticate": "Bearer" });
+  }
+  return next();
+};
+app.use("/agent/*", requireAgentKey);
+app.use("/agents/*", requireAgentKey);
 
 const agent = (c: { env: Env; req: { param: (k: "name") => string } }) =>
   getAgentByName(c.env.StacksAgent, c.req.param("name"));

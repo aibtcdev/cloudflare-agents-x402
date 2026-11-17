@@ -16,10 +16,15 @@
     "STACKS_NETWORK": "testnet",
     // Address that receives payments for /ask and the paid MCP tool.
     "PAY_TO": "REPLACE_WITH_YOUR_STACKS_ADDRESS",
-    "MAX_SATS_PER_PAYMENT": "1000"
+    // Paying agent limits. Per payment, and rolling 24h total per agent wallet.
+    "MAX_SATS_PER_PAYMENT": "1000",
+    "MAX_USTX_PER_PAYMENT": "100000",
+    "DAILY_BUDGET_SATS": "10000",
+    "DAILY_BUDGET_USTX": "1000000"
   },
   // Secrets (wrangler secret put / .dev.vars):
   //   WALLET_KEK         32 random bytes, base64. Encrypts each agent's key.
+  //   AGENT_API_KEY      bearer token required on /agent/* and /agents/*.
   //   PAYER_PRIVATE_KEY  optional, dev only: pay from a funded wallet instead.
   "durable_objects": {
     "bindings": [

@@ -1,5 +1,8 @@
 # Optional: enables the paying StacksAgent by encrypting each agent's wallet key.
 # Not needed to receive payments. Generate with: openssl rand -base64 32
 # WALLET_KEK=
+# Required with WALLET_KEK: bearer token for /agent/* and /agents/*, which control
+# the agent's wallet. Generate with: openssl rand -base64 32
+# AGENT_API_KEY=
 # Optional, dev only: a funded key so payments actually settle. Uncomment to use.
 # PAYER_PRIVATE_KEY=

@@ -10,7 +10,7 @@ Your own AI agent on Cloudflare that gets paid in **sBTC (sats) or STX** for eve
 |---|---|
 | `GET /ask?question=…` | Answers a question with your prompt. Costs `PRICE`. |
 | `/mcp` | The same AI as an MCP tool `ask` (paid), plus a free `echo` tool |
-| `/agent/<name>/…` | Optional: agents with their own wallets that **pay** for things. Needs `WALLET_KEK`. |
+| `/agent/<name>/…` | Optional: agents with their own wallets that **pay** for things. Needs `WALLET_KEK` and `AGENT_API_KEY`. |
 
 ## Deploy in one click
 
@@ -46,19 +46,39 @@ npm run dev
 
 ```sh
 curl -i "localhost:8787/ask?question=hello"                       # 402 + price
-curl localhost:8787/agent/alice/wallet                            # needs WALLET_KEK in .dev.vars
-curl -XPOST localhost:8787/agent/alice/tool -d '{"name":"ask","args":{"question":"hello"}}'
-curl -XPOST localhost:8787/agent/alice/fetch -d '{"url":"http://localhost:8787/ask?question=hello"}'
+```
+
+The paying agent's routes need `WALLET_KEK` and `AGENT_API_KEY` in `.dev.vars`, and the key as a bearer token:
+
+```sh
+AUTH="Authorization: Bearer $AGENT_API_KEY"
+curl -H "$AUTH" localhost:8787/agent/alice/wallet
+curl -H "$AUTH" -XPOST localhost:8787/agent/alice/tool -d '{"name":"ask","args":{"question":"hello"}}'
+curl -H "$AUTH" -XPOST localhost:8787/agent/alice/fetch -d '{"url":"http://localhost:8787/ask?question=hello"}'
 ```
 
 The template installs `@aibtc/x402-stacks-agents` from its [GitHub release](https://github.com/aibtcdev/cloudflare-agents-x402/releases/tag/x402-stacks-agents-v0.1.0). To try unreleased library changes, build the package and run `npm install ../../packages/x402-stacks-agents --no-save` here.
 
 ## The paying agent (optional)
 
-Receiving payments needs only `PAY_TO`. An agent that **pays** needs a private key, which is stored encrypted with `WALLET_KEK`. To enable it, keep a copy of the key, because changing it later locks existing wallets:
+Receiving payments needs only `PAY_TO`. An agent that **pays** needs a private key, which is stored encrypted with `WALLET_KEK`, and an API key that protects its wallet. To enable it, set both secrets. Keep a copy of `WALLET_KEK`, because changing it later locks existing wallets:
 
 ```sh
 openssl rand -base64 32 | npx wrangler secret put WALLET_KEK
+openssl rand -base64 32 | npx wrangler secret put AGENT_API_KEY
 ```
 
-A new agent wallet starts empty. Send it sBTC **and a little STX** for fees (0.05 STX covers dozens of payments) at the address from `/agent/<name>/wallet`. In local dev you can instead uncomment `PAYER_PRIVATE_KEY` in `.dev.vars` and set a funded key. `MAX_SATS_PER_PAYMENT` caps what it auto-pays per call.
+Every `/agent/*` and `/agents/*` request must send `Authorization: Bearer <AGENT_API_KEY>`. Without the header those routes return `401`, and without the secret they stay disabled (`503`). Anyone with the key can make the agent pay any x402 endpoint, so treat it like the wallet itself.
+
+A new agent wallet starts empty. Send it sBTC **and a little STX** for fees (0.05 STX covers dozens of payments) at the address from `/agent/<name>/wallet`. In local dev you can instead uncomment `PAYER_PRIVATE_KEY` in `.dev.vars` and set a funded key.
+
+Spending limits, set in `wrangler.jsonc`:
+
+| Variable | Default | Limit |
+|---|---|---|
+| `MAX_SATS_PER_PAYMENT` | `1000` | sBTC per payment, in sats |
+| `MAX_USTX_PER_PAYMENT` | `100000` | STX per payment, in microSTX (0.1 STX) |
+| `DAILY_BUDGET_SATS` | `10000` | sBTC per agent wallet over any 24 hours |
+| `DAILY_BUDGET_USTX` | `1000000` | STX per agent wallet over any 24 hours (1 STX) |
+
+The agent also refuses USDCx and any MCP tool whose charged price differs from its advertised price.
