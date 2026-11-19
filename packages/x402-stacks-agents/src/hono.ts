@@ -12,6 +12,7 @@ import {
 } from "./facilitator";
 import { createPaymentGate, type PaymentGate, type PaymentReceipt } from "./gate";
 import { assetId, type TokenSymbol } from "./constants";
+import { encodeBase64Json } from "./base64";
 
 export type PaidRouteConfig = {
   /** Price in the token's atomic unit (sats for sBTC). */
@@ -27,7 +28,7 @@ export type StacksPaymentVariables = {
   x402Stacks?: { payer?: string; receipt?: PaymentReceipt };
 };
 
-const encode = (v: unknown) => btoa(JSON.stringify(v));
+const encode = encodeBase64Json;
 
 function gateFor(
   resolved: ResolvedServerConfig,
