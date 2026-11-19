@@ -1,11 +1,12 @@
 import { X402_HEADERS, type PaymentRequiredV2 } from "x402-stacks";
 import { payFor, type StacksPayerConfig } from "./client";
 import { encodePayment } from "./sign";
+import { decodeBase64Json } from "./base64";
 
 function decodeHeader(value: string | null): PaymentRequiredV2 | null {
   if (!value) return null;
   try {
-    return JSON.parse(atob(value)) as PaymentRequiredV2;
+    return decodeBase64Json<PaymentRequiredV2>(value);
   } catch {
     return null;
   }
@@ -48,7 +49,7 @@ export function getPaymentResponse(res: Response): unknown {
   const value = res.headers.get(X402_HEADERS.PAYMENT_RESPONSE);
   if (!value) return null;
   try {
-    return JSON.parse(atob(value));
+    return decodeBase64Json(value);
   } catch {
     return null;
   }

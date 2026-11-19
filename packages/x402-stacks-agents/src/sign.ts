@@ -12,6 +12,7 @@ import {
   type PaymentRequiredV2,
   type PaymentRequirementsV2
 } from "x402-stacks";
+import { decodeBase64Json, encodeBase64Json } from "./base64";
 import { TOKEN_CONTRACTS, fromCAIP2, tokenForAsset } from "./constants";
 
 export type StacksSigner = {
@@ -108,9 +109,9 @@ export async function createPaymentPayload(
 }
 
 export function encodePayment(payload: PaymentPayloadV2): string {
-  return btoa(JSON.stringify(payload));
+  return encodeBase64Json(payload);
 }
 
 export function decodePayment(token: string): PaymentPayloadV2 {
-  return JSON.parse(atob(token)) as PaymentPayloadV2;
+  return decodeBase64Json<PaymentPayloadV2>(token);
 }
